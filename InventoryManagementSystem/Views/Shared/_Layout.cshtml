@@ -1,0 +1,107 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Inventory System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Custom style for the active link to create the pill shape */
+        .sidebar-active {
+            background-color: #F3F4F6; /* white */
+            color: #1f2937; /* gray-800 */
+            font-weight: 600; /* semibold */
+            border-radius: 9999px 0px 0px 9999px !important;
+            margin-left: 0.5rem;
+            border-left: 4px solid #3B82F6; /* blue-500 */
+            border-right: none;
+            border-top: 4px solid #3B82F6;
+            border-bottom: 4px solid #3B82F6;
+        }
+            .sidebar-active i {
+                color: #1f2937; /* gray-800 */
+            }
+    </style>
+</head>
+<body class="bg-gray-100 flex">
+
+    @{
+        // Get the name of the current controller to determine the active page
+        var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    }
+
+    <!-- Sidebar -->
+    <aside class="w-64 h-screen bg-slate-800 text-white flex flex-col fixed rounded-r-xl">
+
+        <!-- User Profile Section -->
+        @if (User.Identity.IsAuthenticated)
+        {
+            <div class="flex flex-col items-center p-6 border-b border-slate-700">
+                <div class="w-20 h-20 rounded-full bg-slate-600 mb-3 flex items-center justify-center">
+                    <i class="fas fa-user fa-2x text-slate-300"></i>
+                </div>
+                <span class="font-semibold text-lg">@User.Identity.Name</span>
+                <span class="text-sm text-slate-400">System User</span>
+            </div>
+        }
+
+        <!-- Navigation Links -->
+        <nav class="flex-grow px-2 py-4 space-y-2">
+            <a asp-controller="Dashboard" asp-action="Dashboard"
+               class="flex items-center w-full px-4 py-3 rounded-full @(currentController == "Dashboard" ? "sidebar-active" : "text-slate-200 hover:bg-slate-700 hover:text-white")">
+                <i class="fas fa-tachometer-alt mr-3 w-6 text-center"></i> <span>Dashboard</span>
+            </a>
+            <a asp-controller="Products" asp-action="Index"
+               class="flex items-center w-full px-4 py-3 rounded-full @(currentController == "Products" ? "sidebar-active" : "text-slate-200 hover:bg-slate-700 hover:text-white")">
+                <i class="fas fa-box mr-3 w-6 text-center"></i> <span>Products</span>
+            </a>
+            <a asp-controller="Categories" asp-action="Index"
+               class="flex items-center w-full px-4 py-3 rounded-full @(currentController == "Categories" ? "sidebar-active" : "text-slate-200 hover:bg-slate-700 hover:text-white")">
+                <i class="fas fa-tags mr-3 w-6 text-center"></i> <span>Categories</span>
+            </a>
+            <a asp-controller="Suppliers" asp-action="Index"
+               class="flex items-center w-full px-4 py-3 rounded-full @(currentController == "Suppliers" ? "sidebar-active" : "text-slate-200 hover:bg-slate-700 hover:text-white")">
+                <i class="fas fa-truck mr-3 w-6 text-center"></i> <span>Suppliers</span>
+            </a>
+            <a asp-controller="StockMovement" asp-action="StockIn"
+               class="flex items-center w-full px-4 py-3 rounded-full @(currentController == "Stock In" ? "sidebar-active" : "text-slate-200 hover:bg-slate-700 hover:text-white")">
+                <i class="fas fa-truck mr-3 w-6 text-center"></i> <span>Stock In</span>
+            </a>
+            <a asp-controller="StockMovement" asp-action="StockOut"
+               class="flex items-center w-full px-4 py-3 rounded-full @(currentController == "Stock Out" ? "sidebar-active" : "text-slate-200 hover:bg-slate-700 hover:text-white")">
+                <i class="fas fa-truck mr-3 w-6 text-center"></i> <span>Stock Out</span>
+            </a>
+            <a asp-controller="Reasons" asp-action="Index"
+               class="sidebar-link flex items-center w-full px-4 py-3 @(currentController == "Reasons" ? "sidebar-active" : "text-slate-200 hover:bg-slate-700 hover:text-white rounded-md")">
+                <i class="fas fa-list-ul mr-3 w-6 text-center"></i> <span>Manage Reasons</span>
+            </a>
+        </nav>
+
+        <!-- Logout Button -->
+        <div class="px-6 py-4 border-t border-slate-700">
+            @if (User.Identity.IsAuthenticated)
+            {
+                <form asp-controller="Account" asp-action="Logout" method="post" class="w-full">
+                    <button type="submit" class="w-full flex items-center justify-center py-2 px-4 bg-red-600 hover:bg-red-700 text-white rounded-md">
+                        <i class="fas fa-sign-out-alt mr-3"></i> Logout
+                    </button>
+                </form>
+            }
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col ml-64">
+        <main role="main" class="p-6">
+            @RenderBody()
+        </main>
+        <footer class="border-t text-muted text-center p-4 bg-white mt-auto">
+            &copy; 2025 - InventoryManagementSystem
+        </footer>
+    </div>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
+

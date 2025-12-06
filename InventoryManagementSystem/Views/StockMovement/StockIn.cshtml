@@ -1,0 +1,49 @@
+﻿@model InventoryManagementSystem.Models.StockMovement
+
+@{
+    ViewData["Title"] = "Stock In";
+}
+
+<h1 class="text-3xl font-bold text-gray-800 mb-4">Record Stock In</h1>
+<p class="mb-6 text-gray-600">Use this form to add new inventory to stock (e.g., from a purchase order or a customer return).</p>
+
+<div class="bg-white shadow-md rounded-lg p-6">
+    <form asp-action="StockIn">
+        <!--       <div asp-validation-summary="All" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4"></div>-->
+
+        <div class="mb-4">
+            <label asp-for="ProductId" class="block text-sm font-medium text-gray-700">Product</label>
+            <select asp-for="ProductId" asp-items="ViewBag.Products" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                <option value="">-- Select a Product --</option>
+            </select>
+            <span asp-validation-for="ProductId" class="text-red-600 text-sm"></span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="mb-4">
+                <label for="quantityIn" class="block text-sm font-medium text-gray-700">Quantity to Add</label>
+                <input name="quantityIn" type="number" min="1" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="Type" class="block text-sm font-medium text-gray-700">Reason / Type</label>
+                <!-- Updated to use ViewBag.Reasons -->
+                <select asp-for="Type" asp-items="ViewBag.Reasons" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">-- Select a Reason --</option>
+                </select>
+                <span asp-validation-for="Type" class="text-red-600 text-sm"></span>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label asp-for="Remarks" class="block text-sm font-medium text-gray-700"></label>
+            <textarea asp-for="Remarks" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
+            <span asp-validation-for="Remarks" class="text-red-600 text-sm"></span>
+        </div>
+
+        <div class="mt-6">
+            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow">Confirm Stock In</button>
+            <a asp-action="Index" asp-controller="Products" class="ml-4 text-gray-600 hover:text-gray-800">Cancel</a>
+        </div>
+    </form>
+</div>

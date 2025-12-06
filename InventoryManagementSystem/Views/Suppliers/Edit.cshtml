@@ -1,0 +1,335 @@
+﻿@model InventoryManagementSystem.Models.Supplier
+
+@{
+    ViewData["Title"] = "Edit Supplier";
+}
+
+<h1 class="text-3xl font-bold text-gray-800 mb-4">Edit Supplier</h1>
+
+<div class="bg-white shadow-md rounded-lg p-6">
+    <form asp-action="Edit" id="supplierForm">
+        <div asp-validation-summary="ModelOnly" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4"></div>
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="IsActive" />
+        <input type="hidden" asp-for="CreatedAt" />
+        <input type="hidden" asp-for="CreatedBy" />
+
+        <h2 class="text-xl font-semibold text-gray-700 mb-4">Company Details</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label asp-for="Name" class="block text-sm font-medium text-gray-700"></label>
+                <input asp-for="Name" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                <span asp-validation-for="Name" class="text-red-600 text-sm"></span>
+            </div>
+            <div>
+                <label asp-for="CompanyContactNum" class="block text-sm font-medium text-gray-700"></label>
+                <input asp-for="CompanyContactNum" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                <span asp-validation-for="CompanyContactNum" class="text-red-600 text-sm"></span>
+            </div>
+        </div>
+
+        <!-- Address Section -->
+        <h3 class="text-lg font-medium text-gray-700 mt-6 mb-2">Address</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-gray-50 rounded-lg border">
+
+            <!-- Hidden inputs to hold existing values for JS to read -->
+            <input type="hidden" id="existingRegion" value="@Model.Address.Region" />
+            <input type="hidden" id="existingProvince" value="@Model.Address.Province" />
+            <input type="hidden" id="existingCity" value="@Model.Address.City" />
+            <input type="hidden" id="existingBarangay" value="@Model.Address.Barangay" />
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Region</label>
+                <select id="regionDropdown" asp-for="Address.Region" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white">
+                    <option value="">Select Region</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Province</label>
+                <select id="provinceDropdown" asp-for="Address.Province" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white">
+                    <option value="">Select Province</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">City / Municipality</label>
+                <select id="cityDropdown" asp-for="Address.City" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white">
+                    <option value="">Select City/Municipality</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Barangay</label>
+                <select id="barangayDropdown" asp-for="Address.Barangay" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white">
+                    <option value="">Select Barangay</option>
+                </select>
+            </div>
+            <div class="col-span-2">
+                <label asp-for="Address.StreetAddress" class="block text-sm font-medium text-gray-700"></label>
+                <input asp-for="Address.StreetAddress" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Street Name, House No., Building" />
+                <span asp-validation-for="Address.StreetAddress" class="text-red-600 text-sm"></span>
+            </div>
+            <div class="col-span-2">
+                <label asp-for="Address.PostalCode" class="block text-sm font-medium text-gray-700"></label>
+                <input asp-for="Address.PostalCode" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                <span asp-validation-for="Address.PostalCode" class="text-red-600 text-sm"></span>
+            </div>
+        </div>
+
+        <hr class="my-6" />
+
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-gray-700">Contact Persons</h2>
+            <button type="button" id="addContactBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg shadow text-sm">
+                Add Contact
+            </button>
+        </div>
+
+        <div id="contactPersonsContainer" class="space-y-6">
+            @for (int i = 0; i < Model.ContactPersons.Count; i++)
+            {
+                <div class="contact-person-group p-4 border rounded-lg relative">
+                    <h3 class="text-lg font-medium text-gray-600 mb-4">Contact @(i + 1)</h3>
+                    @if (i > 0 || Model.ContactPersons.Count > 1)
+                    {
+                        <button type="button" class="remove-contact-btn absolute top-4 right-4 text-red-500 hover:text-red-700">&times; Remove</button>
+                    }
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label asp-for="ContactPersons[i].Name" class="block text-sm font-medium text-gray-700">Contact Name</label>
+                            <input asp-for="ContactPersons[i].Name" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                            <span asp-validation-for="ContactPersons[i].Name" class="text-red-600 text-sm"></span>
+                        </div>
+                        <div>
+                            <label asp-for="ContactPersons[i].Email" class="block text-sm font-medium text-gray-700">Email</label>
+                            <input asp-for="ContactPersons[i].Email" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                            <span asp-validation-for="ContactPersons[i].Email" class="text-red-600 text-sm"></span>
+                        </div>
+                        <div>
+                            <label asp-for="ContactPersons[i].Phone" class="block text-sm font-medium text-gray-700">Phone</label>
+                            <input asp-for="ContactPersons[i].Phone" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                            <span asp-validation-for="ContactPersons[i].Phone" class="text-red-600 text-sm"></span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="mt-6">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow">Save Changes</button>
+            <a asp-action="Index" class="ml-4 text-gray-600 hover:text-gray-800">Back to List</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const regionSelect = document.getElementById('regionDropdown');
+            const provinceSelect = document.getElementById('provinceDropdown');
+            const citySelect = document.getElementById('cityDropdown');
+            const barangaySelect = document.getElementById('barangayDropdown');
+
+            const existingRegion = document.getElementById('existingRegion').value;
+            const existingProvince = document.getElementById('existingProvince').value;
+            const existingCity = document.getElementById('existingCity').value;
+            const existingBarangay = document.getElementById('existingBarangay').value;
+
+            // Helper to get ID from a select element based on text value
+            function getOptionIdByText(selectElement, text) {
+                const option = Array.from(selectElement.options).find(o => o.text === text);
+                return option ? option.getAttribute('data-id') : null;
+            }
+
+            // 1. Initial Load Sequence
+            fetch('/api/locations/regions')
+                .then(res => res.json())
+                .then(data => {
+                    data.forEach(item => {
+                        let option = new Option(item.name, item.name);
+                        option.setAttribute('data-id', item.regionId);
+                        regionSelect.add(option);
+                    });
+
+                    // If editing, set Region and trigger Province load
+                    if (existingRegion) {
+                        regionSelect.value = existingRegion;
+                        const regionId = getOptionIdByText(regionSelect, existingRegion);
+                        if (regionId) loadProvinces(regionId, existingProvince);
+                    }
+                });
+
+            // Function to load Provinces
+            function loadProvinces(regionId, selectedValue = null) {
+                provinceSelect.innerHTML = '<option value="">Select Province</option>';
+                provinceSelect.disabled = true;
+
+                fetch(`/api/locations/provinces/${regionId}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        data.forEach(item => {
+                            let option = new Option(item.name, item.name);
+                            option.setAttribute('data-id', item.provinceId);
+                            provinceSelect.add(option);
+                        });
+                        provinceSelect.disabled = false;
+
+                        if (selectedValue) {
+                            provinceSelect.value = selectedValue;
+                            const provinceId = getOptionIdByText(provinceSelect, selectedValue);
+                            if (provinceId) loadCities(provinceId, existingCity);
+                        }
+                    });
+            }
+
+            // Function to load Cities
+            function loadCities(provinceId, selectedValue = null) {
+                citySelect.innerHTML = '<option value="">Select City/Municipality</option>';
+                citySelect.disabled = true;
+
+                fetch(`/api/locations/municipalities/${provinceId}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        data.forEach(item => {
+                            let option = new Option(item.name, item.name);
+                            option.setAttribute('data-id', item.municipalityId);
+                            citySelect.add(option);
+                        });
+                        citySelect.disabled = false;
+
+                        if (selectedValue) {
+                            citySelect.value = selectedValue;
+                            const cityId = getOptionIdByText(citySelect, selectedValue);
+                            if (cityId) loadBarangays(cityId, existingBarangay);
+                        }
+                    });
+            }
+
+            // Function to load Barangays
+            function loadBarangays(cityId, selectedValue = null) {
+                barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+                barangaySelect.disabled = true;
+
+                fetch(`/api/locations/barangays/${cityId}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        data.forEach(item => {
+                            let option = new Option(item.name, item.name);
+                            barangaySelect.add(option);
+                        });
+                        barangaySelect.disabled = false;
+
+                        if (selectedValue) {
+                            barangaySelect.value = selectedValue;
+                        }
+                    });
+            }
+
+            // Event Listeners for User Interaction
+            regionSelect.addEventListener('change', function() {
+                const id = this.options[this.selectedIndex].getAttribute('data-id');
+                resetDropdown(provinceSelect, 'Select Province');
+                resetDropdown(citySelect, 'Select City/Municipality');
+                resetDropdown(barangaySelect, 'Select Barangay');
+                if(id) loadProvinces(id);
+            });
+
+            provinceSelect.addEventListener('change', function() {
+                const id = this.options[this.selectedIndex].getAttribute('data-id');
+                resetDropdown(citySelect, 'Select City/Municipality');
+                resetDropdown(barangaySelect, 'Select Barangay');
+                if(id) loadCities(id);
+            });
+
+            citySelect.addEventListener('change', function() {
+                const id = this.options[this.selectedIndex].getAttribute('data-id');
+                resetDropdown(barangaySelect, 'Select Barangay');
+                if(id) loadBarangays(id);
+            });
+
+            function resetDropdown(dropdown, defaultText) {
+                dropdown.innerHTML = `<option value="">${defaultText}</option>`;
+                dropdown.disabled = true;
+            }
+
+            // --- Contact Person Logic (Same as Create) ---
+            const container = document.getElementById('contactPersonsContainer');
+            const addBtn = document.getElementById('addContactBtn');
+
+            addBtn.addEventListener('click', function () {
+                const index = container.getElementsByClassName('contact-person-group').length;
+                const template = `
+                <div class="contact-person-group p-4 border rounded-lg relative">
+                    <h3 class="text-lg font-medium text-gray-600 mb-4">Contact ${index + 1}</h3>
+                    <button type="button" class="remove-contact-btn absolute top-4 right-4 text-red-500 hover:text-red-700">&times; Remove</button>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label for="ContactPersons_${index}__Name" class="block text-sm font-medium text-gray-700">Contact Name</label>
+                            <input type="text" data-val="true" data-val-required="The Contact Name field is required." id="ContactPersons_${index}__Name" name="ContactPersons[${index}].Name" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                            <span class="text-red-600 text-sm" data-valmsg-for="ContactPersons[${index}].Name" data-valmsg-replace="true"></span>
+                        </div>
+                        <div>
+                            <label for="ContactPersons_${index}__Email" class="block text-sm font-medium text-gray-700">Email</label>
+                            <input type="email" data-val="true" data-val-required="The Email field is required." id="ContactPersons_${index}__Email" name="ContactPersons[${index}].Email" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                            <span class="text-red-600 text-sm" data-valmsg-for="ContactPersons[${index}].Email" data-valmsg-replace="true"></span>
+                        </div>
+                        <div>
+                            <label for="ContactPersons_${index}__Phone" class="block text-sm font-medium text-gray-700">Phone</label>
+                            <input type="text" data-val="true" data-val-required="The Phone field is required." id="ContactPersons_${index}__Phone" name="ContactPersons[${index}].Phone" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                            <span class="text-red-600 text-sm" data-valmsg-for="ContactPersons[${index}].Phone" data-valmsg-replace="true"></span>
+                        </div>
+                    </div>
+                </div>`;
+                container.insertAdjacentHTML('beforeend', template);
+                var form = $('#supplierForm');
+                form.removeData('validator');
+                form.removeData('unobtrusiveValidation');
+                $.validator.unobtrusive.parse(form);
+            });
+
+            container.addEventListener('click', function (e) {
+                if (e.target.classList.contains('remove-contact-btn')) {
+                    e.target.closest('.contact-person-group').remove();
+                    reindexContacts();
+                }
+            });
+
+            function reindexContacts() {
+                const groups = container.getElementsByClassName('contact-person-group');
+                Array.from(groups).forEach((group, index) => {
+                    group.querySelector('h3').innerText = `Contact ${index + 1}`;
+                    const inputs = group.querySelectorAll('input');
+                    const labels = group.querySelectorAll('label');
+                    const spans = group.querySelectorAll('span[data-valmsg-for]');
+
+                    // Logic to show/hide remove button
+                    const removeBtn = group.querySelector('.remove-contact-btn');
+                    if(index === 0 && groups.length === 1) {
+                         if(removeBtn) removeBtn.style.display = 'none';
+                    } else {
+                         if(removeBtn) removeBtn.style.display = 'block';
+                    }
+
+                    if (inputs.length >= 3) {
+                         // Update IDs and names for proper model binding
+                         labels[0].setAttribute('for', `ContactPersons_${index}__Name`);
+                         inputs[0].id = `ContactPersons_${index}__Name`;
+                         inputs[0].name = `ContactPersons[${index}].Name`;
+                         spans[0].setAttribute('data-valmsg-for', `ContactPersons[${index}].Name`);
+
+                         labels[1].setAttribute('for', `ContactPersons_${index}__Email`);
+                         inputs[1].id = `ContactPersons_${index}__Email`;
+                         inputs[1].name = `ContactPersons[${index}].Email`;
+                         spans[1].setAttribute('data-valmsg-for', `ContactPersons[${index}].Email`);
+
+                         labels[2].setAttribute('for', `ContactPersons_${index}__Phone`);
+                         inputs[2].id = `ContactPersons_${index}__Phone`;
+                         inputs[2].name = `ContactPersons[${index}].Phone`;
+                         spans[2].setAttribute('data-valmsg-for', `ContactPersons[${index}].Phone`);
+                    }
+                });
+            }
+        });
+    </script>
+}

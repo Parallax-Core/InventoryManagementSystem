@@ -1,0 +1,22 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="text-center">
+    <h1 class="text-4xl font-bold mb-4">Inventory Management Dashboard</h1>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+    <div class="bg-white p-6 rounded-lg shadow-md text-center">
+        <h2 class="text-2xl font-semibold text-gray-700">Total Products</h2>
+        <p class="text-5xl font-bold text-blue-600 mt-2">@ViewBag.ProductCount</p>
+    </div>
+    <div class="bg-white p-6 rounded-lg shadow-md text-center">
+        <h2 class="text-2xl font-semibold text-gray-700">Product Categories</h2>
+        <p class="text-5xl font-bold text-green-600 mt-2">@ViewBag.CategoryCount</p>
+    </div>
+    <div class="bg-white p-6 rounded-lg shadow-md text-center">
+        <h2 class="text-2xl font-semibold text-gray-700">Suppliers</h2>
+        <p class="text-5xl font-bold text-purple-600 mt-2">@ViewBag.SupplierCount</p>
+    </div>
+</div>

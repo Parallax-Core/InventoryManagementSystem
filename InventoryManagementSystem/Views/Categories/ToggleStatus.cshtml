@@ -1,0 +1,49 @@
+﻿@model InventoryManagementSystem.Models.Category
+
+@{
+    ViewData["Title"] = "Toggle Status";
+    var action = Model.IsActive ? "Deactivate" : "Activate";
+}
+
+<h1 class="text-3xl font-bold text-gray-800">Confirm Status Change</h1>
+
+@if (Model.IsActive)
+{
+    <h3 class="text-xl mt-4">Are you sure you want to <strong class="text-red-600">deactivate</strong> this category?</h3>
+}
+else
+{
+    <h3 class="text-xl mt-4">Are you sure you want to <strong class="text-green-600">activate</strong> this category?</h3>
+}
+
+<div class="mt-6 bg-white shadow-md rounded-lg p-6">
+    <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+        <dt class="font-semibold text-gray-700">Name</dt>
+        <dd class="text-gray-900">@Html.DisplayFor(model => model.Name)</dd>
+
+        <dt class="font-semibold text-gray-700">Description</dt>
+        <dd class="text-gray-900">@Html.DisplayFor(model => model.Description)</dd>
+
+        <dt class="font-semibold text-gray-700">Current Status</dt>
+        <dd class="text-gray-900">
+            @if (Model.IsActive)
+            {
+                <span>Active</span>
+            }
+            else
+            {
+
+                <span>Inactive</span>
+            }
+        </dd>
+    </dl>
+
+    <form asp-action="ToggleStatus" class="mt-6">
+        <input type="hidden" asp-for="Id" />
+        <button type="submit" class="bg-@(Model.IsActive ? "red" : "green")-600 hover:bg-@(Model.IsActive ? "red" : "green")-700 text-white font-bold py-2 px-4 rounded-lg shadow">
+            Confirm @action
+        </button>
+        <a asp-action="Index" class="ml-4 text-gray-600 hover:text-gray-800">Back to List</a>
+    </form>
+</div>
+

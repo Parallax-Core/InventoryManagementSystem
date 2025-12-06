@@ -1,0 +1,51 @@
+﻿@model IEnumerable<InventoryManagementSystem.Models.StockMovement>
+
+@{
+    ViewData["Title"] = "Stock Movement History";
+    var product = ViewBag.Product as InventoryManagementSystem.Models.Product;
+}
+
+<div class="flex justify-between items-center mb-4">
+    <div>
+        <h1 class="text-3xl font-bold text-gray-800">Stock Movement History</h1>
+        <h2 class="text-xl font-semibold text-gray-700">@product.Name</h2>
+        <p class="text-gray-600">Current Quantity: <span class="font-bold">@product.Quantity</span></p>
+    </div>
+    <a asp-action="Index" asp-controller="Products" class="text-blue-600 hover:text-blue-800">Back to Product List</a>
+</div>
+
+<div class="bg-white shadow-md rounded-lg overflow-hidden">
+    <table class="min-w-full bg-white">
+        <thead class="bg-gray-800 text-white">
+            <tr>
+                <th class="py-3 px-6 text-left">Date / Time</th>
+                <th class="py-3 px-6 text-left">Type</th>
+                <th class="py-3 px-6 text-center">Quantity Change</th>
+                <th class="py-3 px-6 text-left">User</th> <!-- *** UPDATED *** -->
+                <th class="py-3 px-6 text-left">Remarks</th>
+            </tr>
+        </thead>
+        <tbody class="text-gray-700">
+            @foreach (var item in Model)
+            {
+                <tr class="border-b border-gray-200 hover:bg-gray-100">
+                    <td class="py-3 px-6 text-left">@item.Timestamp.ToLocalTime()</td>
+                    <td class="py-3 px-6 text-left">@item.Type</td>
+                    <td class="py-3 px-6 text-center">
+                        @if (item.QuantityChange > 0)
+                        {
+                            <span class="font-bold text-green-600">+@item.QuantityChange</span>
+                        }
+                        else
+                        {
+                            <span class="font-bold text-red-600">@item.QuantityChange</span>
+                        }
+                    </td>
+                    <td class="py-3 px-6 text-left">@item.UserName</td> <!-- *** UPDATED *** -->
+                    <td class="py-3 px-6 text-left">@item.Remarks</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
