@@ -7,11 +7,25 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* Custom style for the active link to create the pill shape */
+        /* Custom scrollbar for sidebar */
+        aside::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        aside::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+
+        aside::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+
+        /* Active link styling */
         .sidebar-active {
             background-color: #F3F4F6; /* white */
             color: #1f2937; /* gray-800 */
-            font-weight: 600; /* semibold */
+            font-weight: 600;
             border-radius: 9999px 0px 0px 9999px !important;
             margin-left: 0.5rem;
             border-left: 4px solid #3B82F6; /* blue-500 */
@@ -19,71 +33,96 @@
             border-top: 4px solid #3B82F6;
             border-bottom: 4px solid #3B82F6;
         }
+
             .sidebar-active i {
-                color: #1f2937; /* gray-800 */
+                color: #1f2937;
             }
+
+        /* GLOBAL TABLE COMPACT FIX
+                   This forces all tables in the app to be smaller and tighter
+                   to fit better on 1366x768 screens.
+                */
+        table th, table td {
+            padding-top: 0.5rem !important;
+            padding-bottom: 0.5rem !important;
+            padding-left: 0.75rem !important;
+            padding-right: 0.75rem !important;
+            font-size: 0.875rem !important; /* text-sm */
+        }
+
+        /* Optional: prevent headers from wrapping awkwardly */
+        table th {
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body class="bg-gray-100 flex">
 
     @{
-        // Get the name of the current controller to determine the active page
         var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+        var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
     }
 
-    <!-- Sidebar -->
-    <aside class="w-64 h-screen bg-slate-800 text-white flex flex-col fixed rounded-r-xl">
+    <!-- Sidebar: Added overflow-y-auto to allow scrolling on small screens -->
+    <aside class="w-64 h-screen bg-slate-800 text-white flex flex-col fixed left-0 top-0 overflow-y-auto z-10 shadow-xl">
 
-        <!-- User Profile Section -->
+        <!-- User Profile Section: Made more compact (w-14 h-14) -->
         @if (User.Identity.IsAuthenticated)
         {
-            <div class="flex flex-col items-center p-6 border-b border-slate-700">
-                <div class="w-20 h-20 rounded-full bg-slate-600 mb-3 flex items-center justify-center">
-                    <i class="fas fa-user fa-2x text-slate-300"></i>
+            <div class="flex flex-col items-center p-4 border-b border-slate-700 shrink-0">
+                <div class="w-14 h-14 rounded-full bg-slate-600 mb-2 flex items-center justify-center">
+                    <i class="fas fa-user fa-lg text-slate-300"></i>
                 </div>
-                <span class="font-semibold text-lg">@User.Identity.Name</span>
-                <span class="text-sm text-slate-400">System User</span>
+                <span class="font-semibold text-base truncate w-full text-center">@User.Identity.Name</span>
+                <span class="text-xs text-slate-400">System User</span>
             </div>
         }
 
-        <!-- Navigation Links -->
-        <nav class="flex-grow px-2 py-4 space-y-2">
+        <!-- Navigation Links: Reduced padding (py-2) for better fit -->
+        <nav class="flex-grow px-2 py-3 space-y-1">
             <a asp-controller="Dashboard" asp-action="Dashboard"
-               class="flex items-center w-full px-4 py-3 rounded-full @(currentController == "Dashboard" ? "sidebar-active" : "text-slate-200 hover:bg-slate-700 hover:text-white")">
+               class="flex items-center w-full px-4 py-2 rounded-full transition-colors duration-200 @(currentController == "Dashboard" ? "sidebar-active" : "text-slate-200 hover:bg-slate-700 hover:text-white")">
                 <i class="fas fa-tachometer-alt mr-3 w-6 text-center"></i> <span>Dashboard</span>
             </a>
+
             <a asp-controller="Products" asp-action="Index"
-               class="flex items-center w-full px-4 py-3 rounded-full @(currentController == "Products" ? "sidebar-active" : "text-slate-200 hover:bg-slate-700 hover:text-white")">
+               class="flex items-center w-full px-4 py-2 rounded-full transition-colors duration-200 @(currentController == "Products" ? "sidebar-active" : "text-slate-200 hover:bg-slate-700 hover:text-white")">
                 <i class="fas fa-box mr-3 w-6 text-center"></i> <span>Products</span>
             </a>
+
             <a asp-controller="Categories" asp-action="Index"
-               class="flex items-center w-full px-4 py-3 rounded-full @(currentController == "Categories" ? "sidebar-active" : "text-slate-200 hover:bg-slate-700 hover:text-white")">
+               class="flex items-center w-full px-4 py-2 rounded-full transition-colors duration-200 @(currentController == "Categories" ? "sidebar-active" : "text-slate-200 hover:bg-slate-700 hover:text-white")">
                 <i class="fas fa-tags mr-3 w-6 text-center"></i> <span>Categories</span>
             </a>
+
             <a asp-controller="Suppliers" asp-action="Index"
-               class="flex items-center w-full px-4 py-3 rounded-full @(currentController == "Suppliers" ? "sidebar-active" : "text-slate-200 hover:bg-slate-700 hover:text-white")">
+               class="flex items-center w-full px-4 py-2 rounded-full transition-colors duration-200 @(currentController == "Suppliers" ? "sidebar-active" : "text-slate-200 hover:bg-slate-700 hover:text-white")">
                 <i class="fas fa-truck mr-3 w-6 text-center"></i> <span>Suppliers</span>
             </a>
+
+            <!-- Logic Fix: Check Action for Stock In/Out since Controller is same -->
             <a asp-controller="StockMovement" asp-action="StockIn"
-               class="flex items-center w-full px-4 py-3 rounded-full @(currentController == "Stock In" ? "sidebar-active" : "text-slate-200 hover:bg-slate-700 hover:text-white")">
-                <i class="fas fa-truck mr-3 w-6 text-center"></i> <span>Stock In</span>
+               class="flex items-center w-full px-4 py-2 rounded-full transition-colors duration-200 @(currentController == "StockMovement" && currentAction == "StockIn" ? "sidebar-active" : "text-slate-200 hover:bg-slate-700 hover:text-white")">
+                <i class="fas fa-arrow-down mr-3 w-6 text-center"></i> <span>Stock In</span>
             </a>
+
             <a asp-controller="StockMovement" asp-action="StockOut"
-               class="flex items-center w-full px-4 py-3 rounded-full @(currentController == "Stock Out" ? "sidebar-active" : "text-slate-200 hover:bg-slate-700 hover:text-white")">
-                <i class="fas fa-truck mr-3 w-6 text-center"></i> <span>Stock Out</span>
+               class="flex items-center w-full px-4 py-2 rounded-full transition-colors duration-200 @(currentController == "StockMovement" && currentAction == "StockOut" ? "sidebar-active" : "text-slate-200 hover:bg-slate-700 hover:text-white")">
+                <i class="fas fa-arrow-up mr-3 w-6 text-center"></i> <span>Stock Out</span>
             </a>
+
             <a asp-controller="Reasons" asp-action="Index"
-               class="sidebar-link flex items-center w-full px-4 py-3 @(currentController == "Reasons" ? "sidebar-active" : "text-slate-200 hover:bg-slate-700 hover:text-white rounded-md")">
+               class="flex items-center w-full px-4 py-2 rounded-md transition-colors duration-200 @(currentController == "Reasons" ? "sidebar-active" : "text-slate-200 hover:bg-slate-700 hover:text-white")">
                 <i class="fas fa-list-ul mr-3 w-6 text-center"></i> <span>Manage Reasons</span>
             </a>
         </nav>
 
-        <!-- Logout Button -->
-        <div class="px-6 py-4 border-t border-slate-700">
+        <!-- Logout Button: Stays at bottom but scrolls if needed -->
+        <div class="px-6 py-4 border-t border-slate-700 shrink-0">
             @if (User.Identity.IsAuthenticated)
             {
                 <form asp-controller="Account" asp-action="Logout" method="post" class="w-full">
-                    <button type="submit" class="w-full flex items-center justify-center py-2 px-4 bg-red-600 hover:bg-red-700 text-white rounded-md">
+                    <button type="submit" class="w-full flex items-center justify-center py-2 px-4 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors shadow-sm">
                         <i class="fas fa-sign-out-alt mr-3"></i> Logout
                     </button>
                 </form>
@@ -91,12 +130,14 @@
         </div>
     </aside>
 
-    <!-- Main Content -->
-    <div class="flex-1 flex flex-col ml-64">
-        <main role="main" class="p-6">
+    <!-- Main Content Wrapper -->
+    <div class="flex-1 flex flex-col ml-64 min-h-screen">
+        <!-- Reduced padding from p-6 to p-4 to save screen space -->
+        <main role="main" class="p-4">
             @RenderBody()
         </main>
-        <footer class="border-t text-muted text-center p-4 bg-white mt-auto">
+
+        <footer class="border-t text-gray-500 text-sm text-center p-4 bg-white mt-auto">
             &copy; 2025 - InventoryManagementSystem
         </footer>
     </div>
@@ -104,4 +145,3 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
-
