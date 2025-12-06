@@ -50,7 +50,7 @@ namespace InventoryManagementSystem.Controllers
                     new ClaimsPrincipal(claimsIdentity),
                     authProperties);
 
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("Dashboard", "Dashboard");
             }
 
             ViewData["ErrorMessage"] = "Invalid username or password";
