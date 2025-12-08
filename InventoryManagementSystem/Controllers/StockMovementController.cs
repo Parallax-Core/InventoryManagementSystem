@@ -127,15 +127,16 @@ namespace InventoryManagementSystem.Controllers
         // *** NEW Helper Method ***
         private async Task PopulateReasonsDropdown(string type)
         {
-            // Fetch reasons that match the type ('In', 'Out', or 'Both')
             var filter = Builders<Reason>.Filter.Or(
                 Builders<Reason>.Filter.Eq(r => r.Type, type),
                 Builders<Reason>.Filter.Eq(r => r.Type, "Both"),
-                Builders<Reason>.Filter.Eq(r => r.Type, null) // Include uncategorized for backward compatibility
+                Builders<Reason>.Filter.Eq(r => r.Type, null)
             );
 
             var reasons = await _mongoDbService.Reasons.Find(filter).ToListAsync();
-            ViewBag.Reasons = new SelectList(reasons, "Name", "Name");
+
+            // *** FIX: Use "Id" as the value field (2nd argument) ***
+            ViewBag.Reasons = new SelectList(reasons, "Id", "Name");
         }
     }
 }

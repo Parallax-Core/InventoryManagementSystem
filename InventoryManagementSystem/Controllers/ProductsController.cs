@@ -95,9 +95,6 @@ public class ProductsController : Controller
         return View(products);
     }
 
-    // ... (Rest of your controller methods: Details, Create, Edit, ToggleStatus, etc. remain exactly as they were) ...
-    // Ensure you keep the existing Create, Edit, Details, ToggleStatus, and private helper methods here.
-
     // GET: Products/Details/5
     public async Task<IActionResult> Details(string id)
     {
@@ -147,16 +144,38 @@ public class ProductsController : Controller
 
             await _mongoDbService.Products.InsertOneAsync(product);
 
+            // *** FIX START: Handle Initial Stock with ReasonId ***
+
+            // 1. Try to find an existing reason for "Initial Stock"
+            var initialReason = await _mongoDbService.Reasons
+                .Find(r => r.Name == "Initial Stock")
+                .FirstOrDefaultAsync();
+
+            // 2. If it doesn't exist, create it automatically
+            if (initialReason == null)
+            {
+                initialReason = new Reason
+                {
+                    Name = "Initial Stock",
+                    Type = "In", // It adds to stock
+                    Description = "System generated reason for new products"
+                };
+                await _mongoDbService.Reasons.InsertOneAsync(initialReason);
+            }
+
+            // 3. Create the movement using the ReasonId
             var movement = new StockMovement
             {
                 ProductId = product.Id,
                 QuantityChange = product.Quantity,
-                Type = "Initial Stock",
+                ReasonId = initialReason.Id, // Use the ID, not a string Type
                 Remarks = "Product created",
                 Timestamp = DateTime.UtcNow,
                 UserName = User.Identity.Name
             };
             await _mongoDbService.StockMovements.InsertOneAsync(movement);
+
+            // *** FIX END ***
 
             return RedirectToAction(nameof(Index));
         }

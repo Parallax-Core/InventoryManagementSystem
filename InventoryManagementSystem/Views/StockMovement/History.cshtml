@@ -19,9 +19,9 @@
         <thead class="bg-gray-800 text-white">
             <tr>
                 <th class="py-3 px-6 text-left">Date / Time</th>
-                <th class="py-3 px-6 text-left">Type</th>
+                <th class="py-3 px-6 text-left">Reason</th> <!-- Renamed Header from Type to Reason -->
                 <th class="py-3 px-6 text-center">Quantity Change</th>
-                <th class="py-3 px-6 text-left">User</th> <!-- *** UPDATED *** -->
+                <th class="py-3 px-6 text-left">User</th>
                 <th class="py-3 px-6 text-left">Remarks</th>
             </tr>
         </thead>
@@ -30,7 +30,19 @@
             {
                 <tr class="border-b border-gray-200 hover:bg-gray-100">
                     <td class="py-3 px-6 text-left">@item.Timestamp.ToLocalTime()</td>
-                    <td class="py-3 px-6 text-left">@item.Type</td>
+
+                    <!-- *** FIX: Display Reason Name instead of Type *** -->
+                    <td class="py-3 px-6 text-left">
+                        @if (item.Reason != null)
+                        {
+                            @item.Reason.Name
+                        }
+                        else
+                        {
+                            <span class="text-gray-400 text-sm italic">Unspecified</span>
+                        }
+                    </td>
+
                     <td class="py-3 px-6 text-center">
                         @if (item.QuantityChange > 0)
                         {
@@ -41,11 +53,10 @@
                             <span class="font-bold text-red-600">@item.QuantityChange</span>
                         }
                     </td>
-                    <td class="py-3 px-6 text-left">@item.UserName</td> <!-- *** UPDATED *** -->
+                    <td class="py-3 px-6 text-left">@item.UserName</td>
                     <td class="py-3 px-6 text-left">@item.Remarks</td>
                 </tr>
             }
         </tbody>
     </table>
 </div>
-

@@ -9,7 +9,7 @@
 
 <div class="bg-white shadow-md rounded-lg p-6">
     <form asp-action="StockOut">
-        <!--       <div asp-validation-summary="All" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4"></div>-->
+        <!--        <div asp-validation-summary="All" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4"></div>-->
 
         <div class="mb-4">
             <label asp-for="ProductId" class="block text-sm font-medium text-gray-700">Product</label>
@@ -26,12 +26,12 @@
             </div>
 
             <div class="mb-4">
-                <label asp-for="Type" class="block text-sm font-medium text-gray-700">Reason / Type</label>
-                <!-- Updated to use ViewBag.Reasons -->
-                <select asp-for="Type" asp-items="ViewBag.Reasons" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                <!-- *** FIX: Changed asp-for="Type" to asp-for="ReasonId" *** -->
+                <label asp-for="ReasonId" class="block text-sm font-medium text-gray-700">Reason / Type</label>
+                <select asp-for="ReasonId" asp-items="ViewBag.Reasons" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     <option value="">-- Select a Reason --</option>
                 </select>
-                <span asp-validation-for="Type" class="text-red-600 text-sm"></span>
+                <span asp-validation-for="ReasonId" class="text-red-600 text-sm"></span>
             </div>
         </div>
 

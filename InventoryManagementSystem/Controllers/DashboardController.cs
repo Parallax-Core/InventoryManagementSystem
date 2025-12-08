@@ -3,9 +3,9 @@ using InventoryManagementSystem.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace InventoryManagementSystem.Controllers
 {
@@ -19,79 +19,79 @@ namespace InventoryManagementSystem.Controllers
             _mongoDbService = mongoDbService;
         }
 
-        public async Task<IActionResult> Dashboard()
+        public async Task<IActionResult> Dashboard() // Or "Dashboard" depending on your route
         {
-            var viewModel = new Analytics();
+            // 1. Fetch Data
+            var products = await _mongoDbService.Products.Find(_ => true).ToListAsync();
+            var movements = await _mongoDbService.StockMovements.Find(_ => true).ToListAsync();
+            var reasons = await _mongoDbService.Reasons.Find(_ => true).ToListAsync(); // *** NEW: Fetch Reasons ***
+            var suppliers = await _mongoDbService.Suppliers.Find(_ => true).ToListAsync();
 
-            // 1. Summary Cards Logic
-            var allProducts = await _mongoDbService.Products.Find(p => true).ToListAsync();
-            var allCategories = await _mongoDbService.Categories.Find(c => true).ToListAsync();
-            var allSuppliers = await _mongoDbService.Suppliers.Find(s => true).ToListAsync();
+            // 2. Calculate Basic Metrics
+            var analytics = new Analytics
+            {
+                TotalProducts = products.Count,
+                CategoryCount = products.Select(p => p.CategoryId).Distinct().Count(),
+                SupplierCount = suppliers.Count,
+                LowStockCount = products.Count(p => p.Quantity < 10), // Assuming 10 is low stock threshold
 
-            viewModel.TotalProducts = allProducts.Count;
-            viewModel.LowStockCount = allProducts.Count(p => p.Quantity < 10); // Assuming 10 is low stock threshold
-            viewModel.EstimatedInventoryValue = allProducts.Sum(p => p.Price * p.Quantity);
-            viewModel.CategoryCount = allCategories.Count;
-            viewModel.SupplierCount = allSuppliers.Count;
+                // Inventory Value = Sum(Price * Quantity)
+                EstimatedInventoryValue = products.Sum(p => p.Price * p.Quantity),
 
-            var startOfMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+                // Stock Out This Month = Sum of negative quantity changes in current month
+                TotalStockOutThisMonth = movements
+                .Where(m => m.QuantityChange < 0 && m.Timestamp.Month == System.DateTime.UtcNow.Month)
+                .Sum(m => Math.Abs(m.QuantityChange))
+            };
 
-            // Fetch movements for this month (negative quantity = stock out)
-            var monthlyStockOuts = await _mongoDbService.StockMovements
-                .Find(m => m.Timestamp >= startOfMonth && m.QuantityChange < 0)
-                .ToListAsync();
+            // 3. Top Selling Products (Bar Chart)
+            // Filter reasons to identify "Sales" (excluding "Expired", "Damaged", etc.)
+            // matches logic: (m.Type == "Sale" || m.Type == "Stock Out")
+            var saleReasonIds = reasons
+                .Where(r => r.Name.Equals("Sale", System.StringComparison.OrdinalIgnoreCase) ||
+                            r.Name.Equals("Stock Out", System.StringComparison.OrdinalIgnoreCase))
+                .Select(r => r.Id)
+                .ToList();
 
-            viewModel.TotalStockOutThisMonth = monthlyStockOuts.Sum(m => Math.Abs(m.QuantityChange));
-
-
-            // 2. Top Selling Products Logic (Based on "Sale" Stock Outs)
-            // We filter for stock movements where Type is "Sale" OR "Stock Out" (adjust string if needed)
-            // and where quantity is negative.
-            var salesMovements = await _mongoDbService.StockMovements
-                .Find(m => (m.Type == "Sale" || m.Type == "Stock Out") && m.QuantityChange < 0)
-                .ToListAsync();
-
-            var topSales = salesMovements
+            // Group negative movements by ProductId to see what's leaving stock via Sales
+            var topProducts = movements
+                .Where(m => m.QuantityChange < 0 && saleReasonIds.Contains(m.ReasonId))
                 .GroupBy(m => m.ProductId)
-                .Select(g => new {
+                .Select(g => new
+                {
                     ProductId = g.Key,
-                    TotalQuantity = g.Sum(m => Math.Abs(m.QuantityChange))
+                    Sold = g.Sum(x => Math.Abs(x.QuantityChange))
                 })
-                .OrderByDescending(x => x.TotalQuantity)
-                .Take(5) // Top 5
+                .OrderByDescending(x => x.Sold)
+                .Take(5)
                 .ToList();
 
-            foreach (var item in topSales)
-            {
-                var product = await _mongoDbService.Products.Find(p => p.Id == item.ProductId).FirstOrDefaultAsync();
-                // Use product name if found, otherwise "Unknown" (in case product was deleted)
-                viewModel.TopProductNames.Add(product?.Name ?? "Unknown Product");
-                viewModel.TopProductSales.Add(item.TotalQuantity);
-            }
-
-
-            // 3. Reasons Breakdown Logic (Pie Chart)
-            // We look at ALL stock outs (negative change) to see why items are leaving
-            var allStockOuts = await _mongoDbService.StockMovements
-                .Find(m => m.QuantityChange < 0)
-                .ToListAsync();
-
-            var reasons = allStockOuts
-                .GroupBy(m => m.Type)
-                .Select(g => new {
-                    Reason = g.Key,
-                    Count = g.Sum(m => Math.Abs(m.QuantityChange))
-                })
-                .OrderByDescending(r => r.Count)
+            // Map Product IDs to Names
+            analytics.TopProductNames = topProducts
+                .Select(x => products.FirstOrDefault(p => p.Id == x.ProductId)?.Name ?? "Unknown")
                 .ToList();
 
-            foreach (var r in reasons)
-            {
-                viewModel.ReasonLabels.Add(r.Reason ?? "Unspecified");
-                viewModel.ReasonCounts.Add(r.Count);
-            }
+            analytics.TopProductSales = topProducts.Select(x => x.Sold).ToList();
 
-            return View(viewModel);
+            // 4. Stock Out Reasons (Doughnut Chart)
+            // *** FIX FOR ERROR CS1061 ***
+            // Instead of GroupBy(m => m.Type), we GroupBy the Reason Name by looking up the ReasonId
+            var stockOutMovements = movements.Where(m => m.QuantityChange < 0).ToList();
+
+            var reasonStats = stockOutMovements
+                .GroupBy(m =>
+                {
+                    // Find the reason object that matches the movement's ReasonId
+                    var reason = reasons.FirstOrDefault(r => r.Id == m.ReasonId);
+                    return reason != null ? reason.Name : "Uncategorized";
+                })
+                .Select(g => new { Label = g.Key, Count = g.Count() })
+                .ToList();
+
+            analytics.ReasonLabels = reasonStats.Select(x => x.Label).ToList();
+            analytics.ReasonCounts = reasonStats.Select(x => x.Count).ToList();
+
+            return View(analytics);
         }
     }
 }

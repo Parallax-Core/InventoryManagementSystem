@@ -13,13 +13,16 @@ namespace InventoryManagementSystem.Models
 
         [BsonRepresentation(BsonType.ObjectId)]
         [BsonElement("productId")]
-        public string ProductId { get; set; }
+        public string? ProductId { get; set; }
+
+        // *** REFACTOR: Changed "Type" string to "ReasonId" Reference ***
+        // This stores the ObjectId of the Reason document (e.g., "60d5ec...")
+        [BsonRepresentation(BsonType.ObjectId)]
+        [BsonElement("reasonId")]
+        public string? ReasonId { get; set; }
 
         [BsonElement("quantityChange")]
         public int QuantityChange { get; set; }
-
-        [BsonElement("type")]
-        public string Type { get; set; }
 
         [BsonElement("remarks")]
         public string? Remarks { get; set; }
@@ -27,13 +30,17 @@ namespace InventoryManagementSystem.Models
         [BsonElement("timestamp")]
         public DateTime Timestamp { get; set; }
 
-        // *** FIX: Made UserName nullable ***
         [BsonElement("userName")]
-        public string? UserName { get; set; } // This field is set by the controller, not the form.
+        public string? UserName { get; set; }
 
-        // Helper property, not stored in DB
+        // *** NAVIGATION PROPERTIES (Not stored in DB) ***
+
         [BsonIgnore]
         public Product? Product { get; set; }
+
+        // This allows you to say "move.Reason.Name" in your View
+        // It is populated manually in the Controller loop.
+        [BsonIgnore]
+        public Reason? Reason { get; set; }
     }
 }
-
