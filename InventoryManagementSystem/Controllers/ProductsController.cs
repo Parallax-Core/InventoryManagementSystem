@@ -7,7 +7,7 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Linq; // Needed for SelectList
+using System.Linq;
 
 namespace InventoryManagementSystem.Controllers;
 
@@ -22,7 +22,6 @@ public class ProductsController : Controller
     }
 
     // GET: Products
-    // Updated to accept category and supplier filters
     public async Task<IActionResult> Index(string searchString, string statusFilter, string categoryFilter, string supplierFilter)
     {
         // Start with a base filter that matches everything
@@ -32,6 +31,9 @@ public class ProductsController : Controller
         // 1. Apply Search Filter (Name)
         if (!string.IsNullOrEmpty(searchString))
         {
+            // *** ADDED: Data Trimming for Search ***
+            searchString = searchString.Trim();
+
             var searchRegex = new BsonRegularExpression(searchString, "i");
             filter &= filterBuilder.Regex(p => p.Name, searchRegex);
         }
@@ -78,15 +80,13 @@ public class ProductsController : Controller
         }
 
         // --- Prepare Data for Dropdowns ---
-        // Fetch ALL categories and suppliers to populate the filter dropdowns
         var categories = await _mongoDbService.Categories.Find(_ => true).ToListAsync();
         var suppliers = await _mongoDbService.Suppliers.Find(_ => true).ToListAsync();
 
-        // Pass lists to View via ViewBag
         ViewBag.CategoryList = new SelectList(categories, "Id", "Name", categoryFilter);
         ViewBag.SupplierList = new SelectList(suppliers, "Id", "Name", supplierFilter);
 
-        // Pass current filter values back to view to maintain state
+        // Pass current filter values back to view
         ViewData["CurrentFilter"] = searchString;
         ViewData["StatusFilter"] = statusFilter;
         ViewData["CategoryFilter"] = categoryFilter;
@@ -126,9 +126,13 @@ public class ProductsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create([Bind("Name,Quantity,Price,CategoryId,SupplierId")] Product product)
     {
+        // *** ENSURE: Data Trimming is here ***
         if (product.Name != null) product.Name = product.Name.Trim();
 
-        var existing = await _mongoDbService.Products.Find(p => p.Name.ToLower() == product.Name.ToLower()).FirstOrDefaultAsync();
+        // Robust Duplicate Check using Regex (Case-Insensitive Exact Match)
+        var nameFilter = Builders<Product>.Filter.Regex(p => p.Name, new BsonRegularExpression($"^{System.Text.RegularExpressions.Regex.Escape(product.Name)}$", "i"));
+        var existing = await _mongoDbService.Products.Find(nameFilter).FirstOrDefaultAsync();
+
         if (existing != null)
         {
             ModelState.AddModelError("Name", "A product with this name already exists.");
@@ -144,38 +148,32 @@ public class ProductsController : Controller
 
             await _mongoDbService.Products.InsertOneAsync(product);
 
-            // *** FIX START: Handle Initial Stock with ReasonId ***
-
-            // 1. Try to find an existing reason for "Initial Stock"
+            // 1. Initial Stock Logic
             var initialReason = await _mongoDbService.Reasons
                 .Find(r => r.Name == "Initial Stock")
                 .FirstOrDefaultAsync();
 
-            // 2. If it doesn't exist, create it automatically
             if (initialReason == null)
             {
                 initialReason = new Reason
                 {
                     Name = "Initial Stock",
-                    Type = "In", // It adds to stock
+                    Type = "In",
                     Description = "System generated reason for new products"
                 };
                 await _mongoDbService.Reasons.InsertOneAsync(initialReason);
             }
 
-            // 3. Create the movement using the ReasonId
             var movement = new StockMovement
             {
                 ProductId = product.Id,
                 QuantityChange = product.Quantity,
-                ReasonId = initialReason.Id, // Use the ID, not a string Type
+                ReasonId = initialReason.Id,
                 Remarks = "Product created",
                 Timestamp = DateTime.UtcNow,
                 UserName = User.Identity.Name
             };
             await _mongoDbService.StockMovements.InsertOneAsync(movement);
-
-            // *** FIX END ***
 
             return RedirectToAction(nameof(Index));
         }
@@ -201,9 +199,16 @@ public class ProductsController : Controller
     {
         if (id != product.Id) return NotFound();
 
+        // *** ENSURE: Data Trimming is here ***
         if (product.Name != null) product.Name = product.Name.Trim();
 
-        var existing = await _mongoDbService.Products.Find(p => p.Name.ToLower() == product.Name.ToLower() && p.Id != id).FirstOrDefaultAsync();
+        // Robust Duplicate Check using Regex (Case-Insensitive Exact Match) excluding current product
+        var nameFilter = Builders<Product>.Filter.Regex(p => p.Name, new BsonRegularExpression($"^{System.Text.RegularExpressions.Regex.Escape(product.Name)}$", "i"));
+        var idFilter = Builders<Product>.Filter.Ne(p => p.Id, id);
+        var combineFilter = Builders<Product>.Filter.And(nameFilter, idFilter);
+
+        var existing = await _mongoDbService.Products.Find(combineFilter).FirstOrDefaultAsync();
+
         if (existing != null)
         {
             ModelState.AddModelError("Name", "A product with this name already exists.");
